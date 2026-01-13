@@ -155,7 +155,7 @@ app.post('/api/checkin', async (req, res) => {
 
     // Store data in Supabase
     const { data: insertedData, error: supabaseError } = await supabase
-      .from('check_ins')
+      .from('checkins')
       .insert([
         {
           mood: parseInt(mood),
