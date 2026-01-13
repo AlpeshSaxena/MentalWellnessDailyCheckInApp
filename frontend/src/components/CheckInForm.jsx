@@ -1,13 +1,16 @@
 /**
  * CheckInForm Component
- * 
+ *
  * Handles the daily wellness check-in form submission, API communication,
  * and displays AI-generated wellness insights.
  */
 
 import { useState } from 'react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+// ✅ IMPORTANT: Remove trailing slash to avoid "//api/checkin" bugs
+const API_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+  : 'http://localhost:3000'
 
 function CheckInForm() {
   const [formData, setFormData] = useState({
@@ -23,7 +26,7 @@ function CheckInForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value
     }))
@@ -41,7 +44,12 @@ function CheckInForm() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          mood: Number(formData.mood), // ✅ ensure number
+          stress_level: formData.stress_level,
+          sleep_quality: formData.sleep_quality,
+          note: formData.note
+        })
       })
 
       const data = await res.json()
@@ -51,8 +59,8 @@ function CheckInForm() {
       }
 
       setResponse(data)
-      
-      // Reset form after successful submission
+
+      // Reset form
       setFormData({
         mood: '',
         stress_level: '',
@@ -77,6 +85,7 @@ function CheckInForm() {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
       <form onSubmit={handleSubmit} className="space-y-6">
+
         {/* Mood Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -204,7 +213,7 @@ function CheckInForm() {
         </div>
       )}
 
-      {/* Success Response with AI Insight */}
+      {/* Success Response */}
       {response && (
         <div className="mt-6 p-5 bg-green-50 border border-green-200 rounded-lg">
           <h3 className="text-lg font-semibold text-green-800 mb-2">
@@ -214,7 +223,8 @@ function CheckInForm() {
             {response.ai_insight}
           </p>
           <p className="text-xs text-green-600 mt-3">
-            Check-in recorded at: {new Date(response.timestamp).toLocaleString()}
+            Check-in recorded at:{' '}
+            {new Date(response.timestamp).toLocaleString()}
           </p>
         </div>
       )}
